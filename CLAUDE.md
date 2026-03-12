@@ -69,5 +69,39 @@ Both `inference.py` and `inference_rknn.py` evaluate four post-processing config
 ### RKNN Conversion Notes
 - Target platform: `rk3588`
 - Default quantization: `fp16` (pass `do_quantization=False` for FP32/FP16, `True` for INT8)
-- Validation threshold in `convert_to_rknn.py` is `max_diff < 1e-4`; the current converted model has `max_diff ≈ 8e-4` (marked `passed: false` in the report JSON — expected for fp16)
 - `mean_values=[[0]], std_values=[[1]]` are set explicitly because the input is already a log-mel spectrogram (not raw pixels)
+- **Do NOT import `rknn.api` and `rknnlite.api` in the same process** — they conflict
+
+### RKNN Graph Fix (NPU Porting)
+
+The original ONNX model requires 3 graph transformations before RKNN conversion:
+
+1. **ReduceMean → depthwise Conv** (all 12+1 ReduceMean nodes):
+   - `ReduceMean(axis=2)` on `(1,C,H,W)` → depthwise Conv `(group=C, kernel=(H,1), weight=1/H)`
+   - `ReduceMean(axes=[2,3])` → depthwise Conv `(group=C, kernel=(1,W), weight=1/W)`
+
+2. **Pad H=1→4 before f1 branch** (each BCBlock):
+   - `(1,C,1,W)` → Pad `[0,0,0,0, 0,0,3,0]` → `(1,C,4,W)`
+   - Needed because RKNN NPU fails to run depthwise Conv(1×3) on H=1 intermediate tensors
+
+3. **Slice + Expand after f1 branch** (each BCBlock):
+   - After f1.1.Conv: `(1,C,4,W)` → Slice(axis=2, rows 0:1) → `(1,C,1,W)` → Expand → `(1,C,H_f2,W)`
+   - Expand avoids RKNN's fused AddRelu broadcast bug `(1,C,1,W)+(1,C,H,W)`
+
+**Fixed model files**:
+- `BCResNet-t2-npu-fixed.onnx` — modified ONNX (ONNX output unchanged: `Max diff: 0.000000`)
+- `BCResNet-t2-npu-fixed.rknn` — converted RKNN (NPU pred=1 matches ONNX pred=1 ✓)
+
+**Workflow**:
+```bash
+# Regenerate fixed ONNX + validate
+conda run -n RKNN-Toolkit2 python fix_rknn_graph.py
+
+# Convert to RKNN
+conda run -n RKNN-Toolkit2 python convert_fixed_only.py
+
+# Quick NPU sanity check
+conda run -n RKNN-Toolkit2 python test_npu_fixed.py
+```
+
+See `HANDOVER.md` for full diagnosis history and remaining tasks.

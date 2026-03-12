@@ -359,7 +359,7 @@ class VisualizationGenerator:
         plt.close()
 
 def main():
-    model_path = 'BCResNet-t2-Focal-ep110.rknn'
+    model_path = 'BCResNet-t2-npu-fixed.rknn'
     test_csv = 'test.csv'
     
     # [수정] RK3588 보드에서 full toolkit을 사용할 경우 target='rk3588' 명시가 필요할 수 있습니다.
