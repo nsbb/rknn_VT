@@ -104,4 +104,6 @@ conda run -n RKNN-Toolkit2 python convert_fixed_only.py
 conda run -n RKNN-Toolkit2 python test_npu_fixed.py
 ```
 
-See `HANDOVER.md` for full diagnosis history and remaining tasks.
+**필독**: 새 세션에서 이 프로젝트를 이어받을 때 반드시 먼저 읽을 것:
+- `docs/RKNN_PORTING_GUIDE.md` — 실패한 접근 방식, RKNN 버그 목록, 올바른 디버깅 순서
+- `docs/HANDOVER.md` — 전체 진단 과정 히스토리
