@@ -35,7 +35,7 @@ pip install onnxruntime numpy librosa soundfile
 ## 주요 파일 구조
 
 ```
-Rockchip_VT/
+rknn-wakeword/
 ├── BCResNet-t2-Focal-ep110.onnx          # 원본 모델
 ├── BCResNet-t2-npu-fixed.onnx            # 수정된 ONNX (NPU 호환)
 ├── BCResNet-t2-npu-fixed.rknn            # 최종 NPU 모델
