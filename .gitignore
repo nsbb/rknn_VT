@@ -5,9 +5,8 @@ wallpad_HiWonder_251113/
 rknn_model_zoo-main/
 infer_results_onnx/
 
-# Model binaries
-*.rknn
-*.onnx
+# RKNN 변환 중간 확인용 파일 (check0~3)
+check*.onnx
 
 # Generated plots / results
 *.png
@@ -15,6 +14,9 @@ infer_results_onnx/
 *.jpeg
 *.csv
 *.json
+
+# Cache
+npu_probs_cache.npz
 
 # IDE / tool config
 .claude/
@@ -24,6 +26,3 @@ infer_results_onnx/
 __pycache__/
 *.pyc
 *.pyo
-
-# Intermediate ONNX check files
-check*.onnx
